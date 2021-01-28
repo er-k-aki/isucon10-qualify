@@ -242,7 +242,7 @@ func main() {
 	// Echo instance
 	e := echo.New()
 	e.Debug = true
-	e.Logger.SetLevel(log.DEBUG)
+	e.Logger.SetLevel(log.ERROR)
 
 	// Middleware
 	e.Use(middleware.Logger())
@@ -660,6 +660,9 @@ func postEstate(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	defer tx.Rollback()
+	var args []interface{}
+	count := 0
+	query :="INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES " 
 	for _, row := range records {
 		rm := RecordMapper{Record: row}
 		id := rm.NextInt()
@@ -678,11 +681,25 @@ func postEstate(c echo.Context) error {
 			c.Logger().Errorf("failed to read record: %v", err)
 			return c.NoContent(http.StatusBadRequest)
 		}
-		_, err := tx.Exec("INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", id, name, description, thumbnail, address, latitude, longitude, rent, doorHeight, doorWidth, features, popularity)
-		if err != nil {
-			c.Logger().Errorf("failed to insert estate: %v", err)
-			return c.NoContent(http.StatusInternalServerError)
+		//TODO: バルクインサートを実装する
+		args = append(args, id, name, description, thumbnail, address, latitude, longitude, rent, doorHeight, doorWidth, features, popularity)
+		query +="(?,?,?,?,?,?,?,?,?,?,?,?) "
+		count++
+		if count % 1000 == 0 || count == len(records) {
+			_, err := tx.Exec(query, args...)
+			if err != nil{
+				c.Logger().Errorf("failed to insert estate: %v", err)
+				return  c.NoContent(http.StatusInternalServerError)
+			}
+			args = make([]interface{}, 0)
+		} else {
+			query += ", "
 		}
+		//	_, err := tx.Exec("INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", id, name, description, thumbnail, address, latitude, longitude, rent, doorHeight, doorWidth, features, popularity)
+	//	if err != nil {
+	//		c.Logger().Errorf("failed to insert estate: %v", err)
+	//		return c.NoContent(http.StatusInternalServerError)
+	//	}
 	}
 	if err := tx.Commit(); err != nil {
 		c.Logger().Errorf("failed to commit tx: %v", err)
