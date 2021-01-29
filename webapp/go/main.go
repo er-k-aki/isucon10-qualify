@@ -208,6 +208,16 @@ func NewMySQLConnectionEnv() *MySQLConnectionEnv {
 	}
 }
 
+// func NewMySQLSlaveConnectionEnv() *MySQLConnectionEnv {
+// 	return &MySQLConnectionEnv{
+// 		Host:     getEnv("MYSQL_HOST", "127.0.0.1"),
+// 		Port:     getEnv("MYSQL_PORT", "13306"),
+// 		User:     getEnv("MYSQL_USER", "isucon"),
+// 		DBName:   getEnv("MYSQL_DBNAME", "isuumo"),
+// 		Password: getEnv("MYSQL_PASS", "isucon"),
+// 	}
+// }
+
 func getEnv(key, defaultValue string) string {
 	val := os.Getenv(key)
 	if val != "" {
@@ -389,24 +399,24 @@ func postChair(c echo.Context) error {
 			return c.NoContent(http.StatusBadRequest)
 		}
 		count++
-	        query += " (?,?,?,?,?,?,?,?,?,?,?,?,?) "
-		if count %1000 == 0 || count == len(records) {
+		query += " (?,?,?,?,?,?,?,?,?,?,?,?,?) "
+		if count%1000 == 0 || count == len(records) {
 			_, err := tx.Exec(query, args...)
 
-			if err != nil{
+			if err != nil {
 				c.Logger().Errorf("failed to insert chair: %v", err)
 				return c.NoContent(http.StatusInternalServerError)
 			}
 
 			query = "INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES"
 			args = make([]interface{}, 0)
-		}else {
+		} else {
 			query += ", "
 			// _, err := tx.Exec("INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock)
-//		if err != nil {
-//			c.Logger().Errorf("failed to insert chair: %v", err)
-//			return c.NoContent(http.StatusInternalServerError)
-//		}
+			//		if err != nil {
+			//			c.Logger().Errorf("failed to insert chair: %v", err)
+			//			return c.NoContent(http.StatusInternalServerError)
+			//		}
 		}
 	}
 	if err := tx.Commit(); err != nil {
@@ -684,7 +694,7 @@ func postEstate(c echo.Context) error {
 	defer tx.Rollback()
 	var args []interface{}
 	count := 0
-	query :="INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES " 
+	query := "INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES "
 	for _, row := range records {
 		rm := RecordMapper{Record: row}
 		id := rm.NextInt()
@@ -705,23 +715,23 @@ func postEstate(c echo.Context) error {
 		}
 		//TODO: バルクインサートを実装する
 		args = append(args, id, name, description, thumbnail, address, latitude, longitude, rent, doorHeight, doorWidth, features, popularity)
-		query +="(?,?,?,?,?,?,?,?,?,?,?,?) "
+		query += "(?,?,?,?,?,?,?,?,?,?,?,?) "
 		count++
-		if count % 1000 == 0 || count == len(records) {
+		if count%1000 == 0 || count == len(records) {
 			_, err := tx.Exec(query, args...)
-			if err != nil{
+			if err != nil {
 				c.Logger().Errorf("failed to insert estate: %v", err)
-				return  c.NoContent(http.StatusInternalServerError)
+				return c.NoContent(http.StatusInternalServerError)
 			}
 			args = make([]interface{}, 0)
 		} else {
 			query += ", "
 		}
 		//	_, err := tx.Exec("INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", id, name, description, thumbnail, address, latitude, longitude, rent, doorHeight, doorWidth, features, popularity)
-	//	if err != nil {
-	//		c.Logger().Errorf("failed to insert estate: %v", err)
-	//		return c.NoContent(http.StatusInternalServerError)
-	//	}
+		//	if err != nil {
+		//		c.Logger().Errorf("failed to insert estate: %v", err)
+		//		return c.NoContent(http.StatusInternalServerError)
+		//	}
 	}
 	if err := tx.Commit(); err != nil {
 		c.Logger().Errorf("failed to commit tx: %v", err)
