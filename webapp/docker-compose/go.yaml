@@ -16,6 +16,22 @@ services:
     ports:
       - "3306:3306"
 
+  # mysql-slave:
+  #   image: mysql:5.7
+  #   volumes:
+  #     - ../mysql/data:/var/lib/mysql
+  #     - ../mysql/db:/docker-entrypoint-initdb.d
+  #     - ../logs/mysql:/var/log/mysql
+  #     - ../../provisioning/ansible/roles/web-bootstrap/files/my.cnf:/etc/mysql/conf.d/my.cnf
+  #     - ../../provisioning/ansible/roles/web-bootstrap/files/slow-mysqld.cnf:/etc/mysql/conf.d/slowquery.cnf
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: root
+  #     MYSQL_DATABASE: isuumo
+  #     MYSQL_USER: isucon
+  #     MYSQL_PASSWORD: isucon
+  #   ports:
+  #     - "13306:3306"
+
   api-server:
     build: ../go
     entrypoint:
@@ -47,6 +63,7 @@ services:
   nginx:
     build: ../nginx
     volumes:
+        - ../../provisioning/ansible/roles/web-bootstrap/files/nginx.conf:/etc/nginx/nginx.conf
         - ../../provisioning/ansible/roles/web-bootstrap/files/nginx.conf.template:/etc/nginx/nginx.conf.template
         - ../logs/nginx:/var/log/nginx
         - ../nginx/conf.d:/etc/nginx/conf.d
