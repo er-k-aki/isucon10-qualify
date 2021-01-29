@@ -7,6 +7,7 @@ services:
       - ../mysql/db:/docker-entrypoint-initdb.d
       - ../logs/mysql:/var/log/mysql
       - ../../provisioning/ansible/roles/web-bootstrap/files/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ../../provisioning/ansible/roles/web-bootstrap/files/mysqld.cnf:/etc/mysql/conf.d/mysqld.cnf
       - ../../provisioning/ansible/roles/web-bootstrap/files/slow-mysqld.cnf:/etc/mysql/conf.d/slowquery.cnf
     environment:
       MYSQL_ROOT_PASSWORD: root
