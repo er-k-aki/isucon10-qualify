@@ -1,4 +1,4 @@
-module github.com/isucon/isucon10-qualify/isuumo
+module github.com/er-k-aki/isucon10-qualify/isuumo
 
 go 1.14
 

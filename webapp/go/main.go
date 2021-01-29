@@ -280,7 +280,7 @@ func main() {
 	e.GET("/api/recommended_estate/:id", searchRecommendedEstateWithChair)
 
 	mySQLConnectionData = NewMySQLConnectionEnv()
-	mySQLSlaveConnectionData = mySQLSlaveConnectionData()
+	mySQLSlaveConnectionData = NewMySQLSlaveConnectionEnv()
 
 	var err error
 	db, err = mySQLConnectionData.ConnectDB()
