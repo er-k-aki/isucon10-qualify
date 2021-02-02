@@ -986,9 +986,10 @@ func searchEstateNazotte(c echo.Context) error {
 	and ST_Contains(ST_PolygonFromText(%s), point)
 	ORDER BY
 	popularity DESC,
-		id ASC`, coordinatesText)
+		id ASC
+    LIMIT ?`, coordinatesText)
 
-	err = db.Select(&estatesInPolygon, query, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
+	err = db.Select(&estatesInPolygon, query, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude, NazotteLimit)
 	//for _, estate := range estatesInBoundingBox {
 	//	validatedEstate := Estate{}
 	//
@@ -1015,12 +1016,11 @@ func searchEstateNazotte(c echo.Context) error {
 
 	var re EstateSearchResponse
 	re.Estates = estatesInPolygon
-	re.Estates = []Estate{}
-	if len(estatesInPolygon) > NazotteLimit {
-		re.Estates = estatesInPolygon[:NazotteLimit]
-	} else {
-		re.Estates = estatesInPolygon
-	}
+	//if len(estatesInPolygon) > NazotteLimit {
+	//	re.Estates = estatesInPolygon[:NazotteLimit]
+	//} else {
+	//	re.Estates = estatesInPolygon
+	//}
 	re.Count = int64(len(re.Estates))
 
 	return c.JSON(http.StatusOK, re)
