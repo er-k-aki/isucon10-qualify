@@ -972,7 +972,7 @@ func searchEstateNazotte(c echo.Context) error {
 	//err = db.Select(&estatesInBoundingBox, query, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
 
 	coordinatesText := coordinates.coordinatesToText()
-	estatesInPolygon := []Estate{}
+	result := []Estate{}
 	query := fmt.Sprintf(`
 	SELECT
 	id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity
@@ -985,7 +985,7 @@ func searchEstateNazotte(c echo.Context) error {
 		id ASC
     LIMIT ?`, coordinatesText)
 
-	err = db.Select(&estatesInPolygon, query, NazotteLimit)
+	err = db.Select(&result, query, NazotteLimit)
 	//for _, estate := range estatesInBoundingBox {
 	//	validatedEstate := Estate{}
 	//
@@ -1006,16 +1006,19 @@ func searchEstateNazotte(c echo.Context) error {
 	//		return c.NoContent(http.StatusInternalServerError)
 	//	}
 	//	} else {
-	//		estatesInPolygon = append(estatesInPolygon, validatedEstate)
+	//		result = append(result, validatedEstate)
 	//	}
 	//}
 
 	var re EstateSearchResponse
-	re.Estates = estatesInPolygon
-	//if len(estatesInPolygon) > NazotteLimit {
-	//	re.Estates = estatesInPolygon[:NazotteLimit]
+	re.Estates = []Estate{}
+	if len(result) > 0 {
+		re.Estates = result
+	}
+	//if len(result) > NazotteLimit {
+	//	re.Estates = result[:NazotteLimit]
 	//} else {
-	//	re.Estates = estatesInPolygon
+	//	re.Estates = result
 	//}
 	re.Count = int64(len(re.Estates))
 
