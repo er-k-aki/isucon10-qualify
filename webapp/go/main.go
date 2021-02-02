@@ -976,7 +976,7 @@ func searchEstateNazotte(c echo.Context) error {
 	estatesInPolygon := []Estate{}
 	query := fmt.Sprintf(`
 	SELECT
-	*
+	id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity
 		FROM
 	estate
 	WHERE
