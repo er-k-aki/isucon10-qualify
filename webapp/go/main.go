@@ -248,6 +248,18 @@ func init() {
 	}
 	json.Unmarshal(jsonText, &estateSearchCondition)
 }
+var botRegex = regexp.MustCompile("ISUCONbot|Mediapartners-ISUCON|ISUCONCoffee|ISUCONFeedSeeker|crawler \\(https://isucon.invalid/(support/faq/|help/jp/)|isubot|Isupider")
+var botRegex2 = regexp.MustCompile("(?i)(bot|crawler|spider)(?:[-_ ./;@()]|$)")
+
+func filter(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ua := c.Request().Header.Get("User-Agent")
+		if botRegex.MatchString(ua) || botRegex2.MatchString(ua) {
+			return c.NoContent(http.StatusServiceUnavailable)
+		}
+		return next(c)
+	}
+}
 
 func main() {
 	// Echo instance
@@ -258,6 +270,7 @@ func main() {
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(filter)
 
 	// Initialize
 	e.POST("/initialize", initialize)
