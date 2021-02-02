@@ -593,7 +593,7 @@ func searchChairs(c echo.Context) error {
 	searchQuery := "SELECT id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock FROM chair WHERE "
 	countQuery := "SELECT COUNT(*) FROM chair WHERE "
 	searchCondition := strings.Join(conditions, " AND ")
-	limitOffset := " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?"
+	limitOffset := " ORDER BY popularity_desc,  id ASC LIMIT ? OFFSET ?"
 
 	var res ChairSearchResponse
 	err = db2.Get(&res.Count, countQuery+searchCondition, params...)
@@ -878,7 +878,7 @@ func searchEstates(c echo.Context) error {
 	searchQuery := "SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE "
 	countQuery := "SELECT COUNT(*) FROM estate WHERE "
 	searchCondition := strings.Join(conditions, " AND ")
-	limitOffset := " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?"
+	limitOffset := " ORDER BY popularity_desc, id ASC LIMIT ? OFFSET ?"
 
 	var res EstateSearchResponse
 	err = db.Get(&res.Count, countQuery+searchCondition, params...)
@@ -942,7 +942,7 @@ func searchRecommendedEstateWithChair(c echo.Context) error {
 	w := chair.Width
 	h := chair.Height
 	d := chair.Depth
-	query = `SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) ORDER BY popularity DESC, id ASC LIMIT ?`
+	query = `SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) ORDER BY popularity_desc,  id ASC LIMIT ?`
 	err = db.Select(&estates, query, w, h, w, d, h, w, h, d, d, w, d, h, Limit)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -968,7 +968,7 @@ func searchEstateNazotte(c echo.Context) error {
 	}
 
 	//estatesInBoundingBox := []Estate{}
-	//query := `SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC`
+	//query := `SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity_desc,  id ASC`
 	//err = db.Select(&estatesInBoundingBox, query, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
 
 	coordinatesText := coordinates.coordinatesToText()
