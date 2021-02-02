@@ -974,16 +974,13 @@ func searchEstateNazotte(c echo.Context) error {
 	coordinatesText := coordinates.coordinatesToText()
 	result := []Estate{}
 	query := fmt.Sprintf(`
-	SELECT
-	id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity
-		FROM
-	estate
-	WHERE
-	and ST_Contains(ST_PolygonFromText(%s), g)
-	ORDER BY
-	popularity_desc,
-		id ASC
-    LIMIT ?`, coordinatesText)
+	SELECT 
+id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity 
+FROM 
+  estate 
+WHERE 
+ST_Contains(ST_PolygonFromText(%s), g) 
+ORDER BY popularity_desc, id LIMIT ?`, coordinatesText)
 
 	err = db.Select(&result, query, NazotteLimit)
 	//for _, estate := range estatesInBoundingBox {
