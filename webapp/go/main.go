@@ -980,9 +980,9 @@ func searchEstateNazotte(c echo.Context) error {
 		FROM
 	estate
 	WHERE
-	latitude between ? and ?
+	lattitude <= ? and lattitude >= ?
 	and
-	longitude between ? and ?
+    longitude <= ? and longitude >= ?
 	and ST_Contains(ST_PolygonFromText(%s), point)
 	ORDER BY
 	popularity DESC,
