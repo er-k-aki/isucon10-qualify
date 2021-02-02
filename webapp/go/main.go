@@ -981,7 +981,7 @@ func searchEstateNazotte(c echo.Context) error {
 	WHERE
 	and ST_Contains(ST_PolygonFromText(%s), g)
 	ORDER BY
-	popularity DESC,
+	popularity_desc,
 		id ASC
     LIMIT ?`, coordinatesText)
 
