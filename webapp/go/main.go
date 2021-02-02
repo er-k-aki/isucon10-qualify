@@ -980,16 +980,13 @@ func searchEstateNazotte(c echo.Context) error {
 		FROM
 	estate
 	WHERE
-	lattitude <= ? and lattitude >= ?
-	and
-    longitude <= ? and longitude >= ?
 	and ST_Contains(ST_PolygonFromText(%s), g)
 	ORDER BY
 	popularity DESC,
 		id ASC
     LIMIT ?`, coordinatesText)
 
-	err = db.Select(&estatesInPolygon, query, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude, NazotteLimit)
+	err = db.Select(&estatesInPolygon, query, NazotteLimit)
 	//for _, estate := range estatesInBoundingBox {
 	//	validatedEstate := Estate{}
 	//
