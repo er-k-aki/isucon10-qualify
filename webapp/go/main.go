@@ -660,6 +660,9 @@ func buyChair(c echo.Context) error {
 		c.Echo().Logger.Errorf("transaction commit error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	// update cache
+	chair.Stock--
+	chairCache[id] = chair
 
 	return c.NoContent(http.StatusOK)
 }
