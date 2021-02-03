@@ -28,6 +28,8 @@ var db, db2 *sqlx.DB
 var mySQLConnectionData, mySQL2ConnectionData *MySQLConnectionEnv
 var chairSearchCondition ChairSearchCondition
 var estateSearchCondition EstateSearchCondition
+var chairCache map[int]Chair
+var estateCache map[int]Estate
 
 type InitializeResponse struct {
 	Language string `json:"language"`
@@ -387,6 +389,10 @@ func getChairDetail(c echo.Context) error {
 	}
 
 	chair := Chair{}
+	chair, ok := chairCache[id]
+	if ok {
+		return c.JSON(http.StatusOK, chair)
+	}
 	query := `SELECT id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock FROM chair WHERE id = ?`
 	err = db2.Get(&chair, query, id)
 	if err != nil {
@@ -400,6 +406,7 @@ func getChairDetail(c echo.Context) error {
 		c.Echo().Logger.Infof("requested id's chair is sold out : %v", id)
 		return c.NoContent(http.StatusNotFound)
 	}
+	chairCache[id] = chair
 
 	return c.JSON(http.StatusOK, chair)
 }
@@ -698,6 +705,10 @@ func getEstateDetail(c echo.Context) error {
 	}
 
 	var estate Estate
+	estate, ok := estateCache[id]
+	if ok {
+		return c.JSON(http.StatusOK, estate)
+	}
 	err = db.Get(&estate, "SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE id = ?", id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -707,6 +718,7 @@ func getEstateDetail(c echo.Context) error {
 		c.Echo().Logger.Errorf("Database Execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	estateCache[id] = estate
 
 	return c.JSON(http.StatusOK, estate)
 }
@@ -926,16 +938,20 @@ func searchRecommendedEstateWithChair(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	chair := Chair{}
 	query := `SELECT id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock FROM chair WHERE id = ?`
-	err = db2.Get(&chair, query, id)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			c.Logger().Infof("Requested chair id \"%v\" not found", id)
-			return c.NoContent(http.StatusBadRequest)
+	chair := Chair{}
+	chair, ok := chairCache[id]
+	if !ok {
+		err = db2.Get(&chair, query, id)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				c.Logger().Infof("Requested chair id \"%v\" not found", id)
+				return c.NoContent(http.StatusBadRequest)
+			}
+			c.Logger().Errorf("Database execution error : %v", err)
+			return c.NoContent(http.StatusInternalServerError)
 		}
-		c.Logger().Errorf("Database execution error : %v", err)
-		return c.NoContent(http.StatusInternalServerError)
+		chairCache[id] = chair
 	}
 
 	var estates []Estate
@@ -1042,6 +1058,10 @@ func postEstateRequestDocument(c echo.Context) error {
 	}
 
 	estate := Estate{}
+	estate, ok = estateCache[id]
+	if ok {
+		return c.NoContent(http.StatusOK)
+	}
 	query := `SELECT id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity FROM estate WHERE id = ?`
 	err = db.Get(&estate, query, id)
 	if err != nil {
@@ -1051,6 +1071,7 @@ func postEstateRequestDocument(c echo.Context) error {
 		c.Logger().Errorf("postEstateRequestDocument DB execution error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	estateCache[id] = estate
 
 	return c.NoContent(http.StatusOK)
 }
