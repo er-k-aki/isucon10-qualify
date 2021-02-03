@@ -23,6 +23,7 @@ import (
 
 const Limit = 20
 const NazotteLimit = 50
+const BulkInsertCount = 10000
 
 var db, db2 *sqlx.DB
 var mySQLConnectionData, mySQL2ConnectionData *MySQLConnectionEnv
@@ -456,7 +457,7 @@ func postChair(c echo.Context) error {
 		}
 		count++
 		query += " (?,?,?,?,?,?,?,?,?,?,?,?,?) "
-		if count%1000 == 0 || count == len(records) {
+		if count%BulkInsertCount == 0 || count == len(records) {
 			_, err := tx.Exec(query, args...)
 
 			if err != nil {
@@ -749,9 +750,9 @@ func postEstate(c echo.Context) error {
 	}
 	defer tx.Rollback()
 	var args []interface{}
-	count := 0
+
 	query := "INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES "
-	for _, row := range records {
+	for count, row := range records {
 		rm := RecordMapper{Record: row}
 		id := rm.NextInt()
 		name := rm.NextString()
@@ -769,11 +770,9 @@ func postEstate(c echo.Context) error {
 			c.Logger().Errorf("failed to read record: %v", err)
 			return c.NoContent(http.StatusBadRequest)
 		}
-		//TODO: バルクインサートを実装する
 		args = append(args, id, name, description, thumbnail, address, latitude, longitude, rent, doorHeight, doorWidth, features, popularity)
 		query += "(?,?,?,?,?,?,?,?,?,?,?,?) "
-		count++
-		if count%1000 == 0 || count == len(records) {
+		if count + 1 %BulkInsertCount == 0 || count + 1 == len(records) {
 			_, err := tx.Exec(query, args...)
 			if err != nil {
 				c.Logger().Errorf("failed to insert estate: %v", err)
@@ -783,11 +782,6 @@ func postEstate(c echo.Context) error {
 		} else {
 			query += ", "
 		}
-		//	_, err := tx.Exec("INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", id, name, description, thumbnail, address, latitude, longitude, rent, doorHeight, doorWidth, features, popularity)
-		//	if err != nil {
-		//		c.Logger().Errorf("failed to insert estate: %v", err)
-		//		return c.NoContent(http.StatusInternalServerError)
-		//	}
 	}
 	if err := tx.Commit(); err != nil {
 		c.Logger().Errorf("failed to commit tx: %v", err)
